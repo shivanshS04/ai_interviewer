@@ -24,7 +24,7 @@ def main() :
         resume = st.file_uploader("Upload your resume", type=["pdf"],accept_multiple_files=False)
         job_role = st.text_input("What job role are you targeting?")
         experience = st.selectbox("what is your experience level?",['Fresher','Entry-level','Mid-level','Senior-level'])
-        submit_btn = st.form_submit_button("Generate Interview Questions",shortcut="ctrl+enter",width="stretch")
+        submit_btn = st.form_submit_button("Generate Interview Questions",shortcut="ctrl+enter",width="stretch", disabled=(resume is None and job_role.strip() == ""))
         if submit_btn:
             initiallize_ai(resume, job_role, experience)
 if __name__ == "__main__":
