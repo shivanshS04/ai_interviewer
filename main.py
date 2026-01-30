@@ -1,5 +1,5 @@
 import streamlit as st
-from pages import home,chat
+from app_pages import home, chat
 
 def main() :
     if "page" not in st.session_state:
