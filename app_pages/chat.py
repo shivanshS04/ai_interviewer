@@ -5,7 +5,8 @@ from utils.generate_audio import generate_audio
 import asyncio
 # Ensure root directory is in python path
 sys.path.append(os.path.abspath('.'))
-from backend import initialize_chat, ChatState
+from backend import initialize_chat, ChatState, generate_performance_summary
+from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.messages import HumanMessage, AIMessage
 
 from streamlit_monaco import st_monaco
@@ -32,7 +33,18 @@ def chat():
             st.markdown(f"**Target Company:** {company_name}")
         
         st.divider()
-        st.button("End Session", on_click=handle_back, use_container_width=True, type="secondary")
+        st.divider()
+        if st.button("End Session", use_container_width=True, type="secondary"):
+            with st.spinner("Generating performance summary..."):
+                # Prepare state for summary generation
+                state = {
+                    "messages": st.session_state.messages,
+                    "feedbacks": st.session_state.feedbacks
+                }
+                summary = generate_performance_summary(state)
+                st.session_state.performance_summary = summary
+                st.session_state.page = "page3"
+                st.rerun()
 
     st.title("Interview Session")
     

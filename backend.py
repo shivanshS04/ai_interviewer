@@ -1,5 +1,5 @@
 from typing import Annotated, Sequence, TypedDict, List, Literal
-# from langchain_ollama import ChatOllama
+from langchain_ollama import ChatOllama
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import (
     AIMessage,
@@ -19,14 +19,27 @@ class InterviewResponse(BaseModel):
     feedback: str = Field(description="Feedback on the candidate's previous answer. If this is the first question, provide a welcoming opening.")
     type: Literal['theory', 'coding'] = Field(description="The type of the question, MUST be either 'theory' or 'coding'. Theory questions require user to write an answer whereas coding question requires user to submit the relevant code")
 
+class PerformanceSummary(BaseModel):
+    technical_accuracy: int = Field(description="Score from 1-10 for technical accuracy of answers")
+    communication_skills: int = Field(description="Score from 1-10 for communication skills")
+    problem_solving: int = Field(description="Score from 1-10 for problem solving ability")
+    code_quality: int = Field(description="Score from 1-10 for code quality (if applicable)")
+    overall_score: int = Field(description="Overall performance score from 1-10")
+    strengths: List[str] = Field(description="List of candidate's strengths")
+    weaknesses: List[str] = Field(description="List of candidate's weaknesses")
+    improvement_areas: List[str] = Field(description="List of specific areas for improvement")
+    summary_text: str = Field(description="A comprehensive summary paragraph of the interview performance")
+
 class ChatState(TypedDict):
     messages: Annotated[Sequence[HumanMessage | AIMessage | SystemMessage], 'List of messages exchanged in the chat']
     feedbacks: Annotated[List[str], 'List of feedbacks provided by the AI']
+    current_question_type: Annotated[str, 'Type of the current question']
+    performance_summary: Annotated[PerformanceSummary | None, 'Final performance summary']
 
-# model = ChatOllama(model="llama3.2")
-model = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash"
-)
+model = ChatOllama(model="llama3.2")
+# model = ChatGoogleGenerativeAI(
+#     model="gemini-2.5-flash"
+# )
 
 def initialize_chat(resume: str, job_role: str, experience: str, company_name: str, state: ChatState) -> ChatState:
     system_prompt = SystemMessage(content=f"""You are an AI interview assistant helping a user prepare for technical interviews.
@@ -79,11 +92,52 @@ Aim for a mix of conceptual understanding and practical coding skills."""
     
     return state
 
+def generate_performance_summary(state: ChatState) -> PerformanceSummary:
+    system_prompt = SystemMessage(content="""You are a Senior Technical Interviewer and Hiring Manager at a top-tier tech company.
+    Your task is to evaluate the candidate's performance based on the entire interview session.
+    
+    ### Evaluation Criteria:
+    - **Technical Accuracy (1-10):** Correctness of answers, depth of knowledge, handling of edge cases.
+    - **Communication Skills (1-10):** Clarity, conciseness, ability to explain complex concepts.
+    - **Problem Solving (1-10):** Approach to problems, breaking down requirements, logical flow.
+    - **Code Quality (1-10):** (If applicable) Syntax, style, efficiency, variable naming.
+    
+    ### Guidelines:
+    1. **Be Objective & Professional:** Use a formal, constructive, and encouraging tone. Avoid casual language.
+    2. **Be Consistent:** A score of 7+ indicates a strong candidate. 4-6 is average. Below 4 needs significant improvement.
+    3. **Actionable Feedback:** Provide specific examples from the conversation. Don't just say "good job", explain *why* it was good or what could be better.
+    4. **Structure:** Ensure the summary text is a cohesive paragraph effectively summarizing the candidate's fit for the role.
+    
+    Analyze the `messages` and `feedbacks` provided to generate this structured assessment.""")
+    
+    messages = [system_prompt] + list(state['messages'])
+    
+    try:
+        structured_model = model.with_structured_output(PerformanceSummary)
+        response = structured_model.invoke(messages)
+    except Exception as e:
+        print(f"Error generating summary: {e}")
+        # Return a fallback summary to avoid crashing
+        response = PerformanceSummary(
+            technical_accuracy=0,
+            communication_skills=0,
+            problem_solving=0,
+            code_quality=0,
+            overall_score=0,
+            strengths=["N/A"],
+            weaknesses=["N/A"],
+            improvement_areas=["Could not generate summary due to an error."],
+            summary_text="An error occurred while generating the performance summary. Please try again."
+        )
+    
+    return response
+
 # Update ChatState definition to include the new field
 class ChatState(TypedDict):
     messages: Annotated[Sequence[HumanMessage | AIMessage | SystemMessage], 'List of messages exchanged in the chat']
     feedbacks: Annotated[List[str], 'List of feedbacks provided by the AI']
     current_question_type: Annotated[str, 'Type of the current question']
+    performance_summary: Annotated[PerformanceSummary | None, 'Final performance summary']
 
 graph = StateGraph(ChatState)
 graph.add_node("initialize_chat", initialize_chat) # Using string name for node is cleaner
