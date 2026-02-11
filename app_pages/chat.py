@@ -46,6 +46,9 @@ def chat():
     if "current_question_type" not in st.session_state:
         st.session_state.current_question_type = "theory"
 
+    if "input_id" not in st.session_state:
+        st.session_state.input_id = 0
+
     # Display chat history
     for i, msg in enumerate(st.session_state.messages):
         if isinstance(msg, AIMessage):
@@ -79,7 +82,27 @@ def chat():
     
     if question_type == 'coding':
         st.markdown("### Code Editor")
-        code_content = st_monaco(value="# Write your solution here\n", height="300px")
+        
+        languages = ["python", "javascript", "react", "java", "c", "cpp", "sql", "html", "css", "json"]
+        selected_language = st.selectbox("Select Language", languages, index=0, key="editor_language")
+        
+        # Map specific selections to Monaco-supported languages
+        # React is essentially JavaScript (JSX) in Monaco
+        editor_lang_map = {
+            "react": "javascript",
+            "c": "c",
+            "cpp": "cpp"
+        }
+        # Default to the selected language if not in map
+        monaco_lang = editor_lang_map.get(selected_language, selected_language)
+        
+        # rudimentary comment mapping for default value if needed, 
+        # but for now we keep the simple default or let user type.
+        # Ideally we'd update 'value' only if it's empty or first load, 
+        # but st_monaco might handle value updates differently.
+        # We will just use the selected language for syntax highlighting.
+        
+        code_content = st_monaco(value="# Write your solution here\n", height="300px", language=monaco_lang)
         if st.button("Submit Solution", type="primary"):
             prompt = code_content
     else:
@@ -88,7 +111,7 @@ def chat():
         
         # Voice Input
         st.write("🎙️ **Voice Answer:**")
-        audio = mic_recorder(start_prompt="Start Recording", stop_prompt="Stop Recording", key='recorder')
+        audio = mic_recorder(start_prompt="Start Recording", stop_prompt="Stop Recording", key=f'recorder_{st.session_state.input_id}')
             
         # Text Input
         text_input = st.chat_input("Or type your answer here...", key="chat_input")
@@ -102,12 +125,15 @@ def chat():
         elif text_input:
             prompt = text_input
         
+        
     # Process Input
     if prompt:
         # Add user message
         # If coding, format as markdown code block for history
         if question_type == 'coding':
-            display_content = f"```python\n{prompt}\n```"
+            # Use the selected language for markdown formatting if available, else default to python
+            lang_for_md = st.session_state.get("editor_language", "python")
+            display_content = f"```{lang_for_md}\n{prompt}\n```"
             st.session_state.messages.append(HumanMessage(content=display_content))
             with st.chat_message("user"):
                 st.markdown(display_content)
@@ -115,6 +141,7 @@ def chat():
             st.session_state.messages.append(HumanMessage(content=prompt))
             with st.chat_message("user"):
                 st.markdown(prompt)
+        prompt = None  # Reset prompt after processing
                 
         # Get AI response
         try:
@@ -144,6 +171,9 @@ def chat():
                 
                 # Trigger autoplay for next run
                 st.session_state.autoplay_audio = True
+                
+                # Increment input_id to reset the recorder
+                st.session_state.input_id += 1
                 
                 # Rerun to update UI
                 st.rerun()

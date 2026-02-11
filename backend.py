@@ -1,5 +1,6 @@
 from typing import Annotated, Sequence, TypedDict, List, Literal
-from langchain_ollama import ChatOllama
+# from langchain_ollama import ChatOllama
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import (
     AIMessage,
     HumanMessage,
@@ -9,6 +10,9 @@ from langgraph.graph import StateGraph, START, END
 from pydantic import BaseModel, Field
 from utils.generate_audio import generate_audio
 import asyncio
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 class InterviewResponse(BaseModel):
     question: str = Field(description="The interview question to ask the candidate.")
@@ -19,7 +23,10 @@ class ChatState(TypedDict):
     messages: Annotated[Sequence[HumanMessage | AIMessage | SystemMessage], 'List of messages exchanged in the chat']
     feedbacks: Annotated[List[str], 'List of feedbacks provided by the AI']
 
-model = ChatOllama(model="llama3.2")
+# model = ChatOllama(model="llama3.2")
+model = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash"
+)
 
 def initialize_chat(resume: str, job_role: str, experience: str, company_name: str, state: ChatState) -> ChatState:
     system_prompt = SystemMessage(content=f"""You are an AI interview assistant helping a user prepare for technical interviews.
