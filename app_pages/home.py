@@ -70,7 +70,7 @@ def home():
     st.divider()
     
     with st.form("initialize_ai_form", enter_to_submit=False, border=True):
-        st.subheader("Candidate Details")
+        st.markdown("<h2 style='font-size: 2.5rem;'>Candidate Details</h2>", unsafe_allow_html=True)
         
         col1, col2 = st.columns(2)
         
