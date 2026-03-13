@@ -122,7 +122,7 @@ def chat():
         st.write("### Answer the Question")
         
         # Voice Input
-        st.write("🎙️ **Voice Answer:**")
+        st.write("**Voice Answer:**")
         audio = mic_recorder(start_prompt="Start Recording", stop_prompt="Stop Recording", key=f'recorder_{st.session_state.input_id}')
             
         # Text Input
