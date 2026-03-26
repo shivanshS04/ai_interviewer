@@ -41,9 +41,13 @@ model = ChatOllama(model="llama3.2")
 #     model="gemini-2.5-flash"
 # )
 
-def initialize_chat(resume: str, job_role: str, experience: str, company_name: str, state: ChatState) -> ChatState:
+def initialize_chat(resume: str, job_role: str, experience: str, company_name: str, job_description: str, state: ChatState) -> ChatState:
     system_prompt = SystemMessage(content=f"""You are an AI interview assistant helping a user prepare for technical interviews.
 The user has provided their resume and is targeting the role of {job_role} at {company_name} with {experience} experience.
+
+JOB DESCRIPTION:
+{job_description}
+
 RESUME CONTENT:
 {resume}
 

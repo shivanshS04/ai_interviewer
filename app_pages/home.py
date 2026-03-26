@@ -8,7 +8,7 @@ import os
 sys.path.append(os.path.abspath('.'))
 from backend import initialize_chat
 
-def initiallize_ai(resume, job_role, experience, company_name):
+def initiallize_ai(resume, job_role, experience, company_name, job_description):
     with st.status("Initializing AI Interviewer...", expanded=True) as status:
         if resume is None:
             status.update(label="Error: Resume missing", state="error", expanded=False)
@@ -38,7 +38,7 @@ def initiallize_ai(resume, job_role, experience, company_name):
         try:
             # Pre-generate the first question here so it's ready for the chat page
             state = {"messages": []}
-            new_state = initialize_chat(resume_text, job_role, experience, company_name, state)
+            new_state = initialize_chat(resume_text, job_role, experience, company_name, job_description, state)
             generated_messages = new_state['messages']
         except Exception as e:
              status.update(label="AI Generation Error", state="error")
@@ -54,6 +54,7 @@ def initiallize_ai(resume, job_role, experience, company_name):
     st.session_state.job_role = job_role
     st.session_state.experience = experience
     st.session_state.company_name = company_name
+    st.session_state.job_description = job_description
     
     # Slight delay to show success state before rerunning
     time.sleep(0.5)
@@ -82,6 +83,8 @@ def home():
             
         company_name = st.text_input("Target Company (Optional)", placeholder="e.g. Google, Microsoft, Startup")
         
+        job_description = st.text_area("Target Job Description (Optional)", placeholder="Paste the job description here...")
+        
         resume = st.file_uploader("Upload Resume (PDF)", type=["pdf"], accept_multiple_files=False)
         st.caption("Your resume will be analyzed to generate relevant interview questions.")
 
@@ -90,4 +93,4 @@ def home():
         submit_btn = st.form_submit_button("Start Interview Session", use_container_width=True, type="primary")
         
         if submit_btn:
-            initiallize_ai(resume, job_role, experience, company_name)
+            initiallize_ai(resume, job_role, experience, company_name, job_description)
