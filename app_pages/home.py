@@ -60,7 +60,7 @@ def initiallize_ai(resume, job_role, experience, company_name):
     st.rerun()
 
 def home():
-    st.title("AI Technical Interviewer")
+    st.markdown("<h1 style='font-size: 4rem; font-weight: 800;'>AI Technical Interviewer</h1>", unsafe_allow_html=True)
     st.markdown("""
     Welcome to the AI Technical Interviewer. This tool helps you prepare for your technical interviews by simulating a real interview experience based on your resume and target role.
     
