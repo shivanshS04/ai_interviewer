@@ -23,6 +23,7 @@ def chat():
     job_role = st.session_state.get('job_role')
     experience = st.session_state.get('experience')
     company_name = st.session_state.get('company_name', "target company")
+    job_description = st.session_state.get('job_description', "")
     
     # Sidebar for session context
     with st.sidebar:
@@ -73,13 +74,15 @@ def chat():
                 else:
                     st.warning("AI response was empty")
                 
-                # Check if this is the latest message to attach audio
-                if i == len(st.session_state.messages) - 1:
-                     if os.path.exists("speech.mp3"):
-                         should_autoplay = st.session_state.get("autoplay_audio", False)
-                         st.audio("speech.mp3", format="audio/mp3", autoplay=should_autoplay)
-                         if should_autoplay:
-                             st.session_state.autoplay_audio = False
+                # Text to speech hidden for now
+                # if i == len(st.session_state.messages) - 1:
+                #      if os.path.exists("speech.mp3"):
+                #          should_autoplay = st.session_state.get("autoplay_audio", False)
+                #          with open("speech.mp3", "rb") as f:
+                #              audio_bytes = f.read()
+                #          st.audio(audio_bytes, format="audio/mp3", autoplay=should_autoplay)
+                #          if should_autoplay:
+                #              st.session_state.autoplay_audio = False
 
         elif isinstance(msg, HumanMessage):
             with st.chat_message("user"):
@@ -164,7 +167,7 @@ def chat():
                     "feedbacks": st.session_state.feedbacks
                 }
                 
-                new_state = initialize_chat(resume, job_role, experience, company_name, state)
+                new_state = initialize_chat(resume, job_role, experience, company_name, job_description, state)
                 
                 # Update session state
                 st.session_state.messages = new_state['messages']

@@ -81,7 +81,7 @@ Aim for a mix of conceptual understanding and practical coding skills."""
         question_content = str(question_content)
         
     state['messages'].append(AIMessage(content=question_content))
-    asyncio.run(generate_audio(response.question))
+    # generate_audio(response.question)  # text to speech hidden for now
     # Initialize feedbacks list if not present
     if 'feedbacks' not in state:
         state['feedbacks'] = []
