@@ -36,10 +36,10 @@ class ChatState(TypedDict):
     current_question_type: Annotated[str, 'Type of the current question']
     performance_summary: Annotated[PerformanceSummary | None, 'Final performance summary']
 
-model = ChatOllama(model="llama3.2")
-# model = ChatGoogleGenerativeAI(
-#     model="gemini-2.5-flash"
-# )
+# model = ChatOllama(model="llama3.2")
+model = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash"
+)
 
 def initialize_chat(resume: str, job_role: str, experience: str, company_name: str, job_description: str, state: ChatState) -> ChatState:
     system_prompt = SystemMessage(content=f"""You are an AI interview assistant helping a user prepare for technical interviews.
